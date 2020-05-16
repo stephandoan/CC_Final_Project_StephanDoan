@@ -54,9 +54,9 @@ function setup(){
 
 	lose = false; // if true, show loss screen
 
-	rules = 0;
+	//rules = 0;
 
-	losetime = 0;
+	//losetime = 0;
 }
 
 function draw(){
@@ -78,7 +78,7 @@ function draw(){
 			}
 		}
 		print('board clean');
-		const pause = frameCount;
+		//const pause = frameCount;
 		//not appreciated by most interpreters
 		/*
 		var time;
@@ -96,7 +96,7 @@ function draw(){
 			//print("waiting");
 		}*/
 		endStage = true;
-		print(endStage);
+		//print(endStage);
 		//sleep(5000);
 		
 		lose = false;
@@ -106,24 +106,24 @@ function draw(){
 	}
 	if(endStage && !lose){
 
-		level++;
+		level++; //increment stage
 
-		control.cx = 40;
+		control.cx = 40; //reset player position and direction
 		control.cy = 40;
 		pdir = 0;
 		control.display();
 
 		if(level == 1){
-			enemyList[0] = new Enemy(random(80), random(80));
+			enemyList[0] = new Enemy(random(80), random(80)); // first stage enemies
 			enemyList[1] = new Enemy(random(80), random(80));
 		}
 		if(level%5 == 3){
-			enemyList[enemyCt] = new Enemy(random(80), random(80));
+			enemyList[enemyCt] = new Enemy(random(80), random(80)); // additional enemies at specified interval
 			enemyList[enemyCt+1] = new Enemy(random(80), random(80));
 			enemyCt+=2;			
 		}
 		if(level%5 == 0){ // if the stage is a multiple of 5
-			enemyList[enemyCt] = new Enemy(random(80), random(80));
+			enemyList[enemyCt] = new Enemy(random(80), random(80)); // additional enemies with boss
 			enemyList[enemyCt+1] = new Enemy(random(80), random(80));
 			enemyCt+=2;
 			eTail+=3;
@@ -153,7 +153,7 @@ function draw(){
 			//adjust(enemyList, 30, random(5)+20);
 
 			for(var i = 0; i < enemyCt; i++){
-				if (enemyList[i].cx > 30 && enemyList[i].cx < 80-30 && enemyList[i].cy > 30 && enemyList[i].cy < 80-30){ // check if the boss is too close to the player
+				if (enemyList[i].cx > 30 && enemyList[i].cx < 80-30 && enemyList[i].cy > 30 && enemyList[i].cy < 80-30){ // check if the enemy is too close to the player
 					if (enemyList[i].cx < 40){
 						enemyList[i].cx-=25;
 						enemyList[i].dir = 3;
@@ -202,33 +202,33 @@ function draw(){
 		endStage = false;
 		stageTime = frameCount + 240;
 	}
-	for (let x = 0; x < 80; x++){
+	for (let x = 0; x < 80; x++){ // display the trails
 		for (let y = 0; y < 80; y++){
 			//print('x, y: ' + x + ' ' + y);
 			board[x][y].display();
 		}
 	}
-	for(var i = 0; i < enemyCt; i++){
+	for(var i = 0; i < enemyCt; i++){ // display enemies
 		//print('displaying');
 		enemyList[i].display();
 	}
 	//if(level > 4){}
-	for(var i = 0; i < Math.floor(level/5); i++){
+	for(var i = 0; i < Math.floor(level/5); i++){ // display bosses
 		print(level);
 		bossList[i].display();
 	}
 
 	
 
-	control.display();
+	control.display(); //display player
 	//print('moving');
-	if(frameCount>stageTime){
+	if(frameCount>stageTime){ // track time in stage (10 seconds)
 		level++;
 		endStage = true;
 	}
 
 }
-
+/* 	unused
 function sleep(milliseconds) { // sleep function, from https://www.sitepoint.com/delay-sleep-pause-wait/
   const date = Date.now();
   let currentDate = null;
@@ -236,8 +236,8 @@ function sleep(milliseconds) { // sleep function, from https://www.sitepoint.com
     currentDate = Date.now();
     //print('waiting');
   } while (currentDate - date < milliseconds);
-}
-
+}*/
+/* unused
 function adjust(arr, border, adj){ // if an element of the array is too close to the player (border), it is adjusted (adj) away
 	for(var curr in arr){
 		if (curr.cx > border && curr.cx < 80-border && curr.cy > border && curr.cy < 80-border){ // check if the boss is too close to the player
@@ -257,8 +257,8 @@ function adjust(arr, border, adj){ // if an element of the array is too close to
 		//curr.display();
 	}
 }
-
-function keyPressed(){
+*/
+function keyPressed(){ //check change in directions from arrowkey press
 	switch(keyCode){
 		case UP_ARROW:
 			pdir = 0;
@@ -289,20 +289,20 @@ class Tile{ // tiles contain objects, standardizing movement. Tiles are 10x10 pi
 		this.bdir = 1;
 	}
 	display(){
-		fill(color(this.r, this.g, this.b));
-		rect(this.tx, this.ty, 10);
-		if(this.pDecay>0){
+		fill(color(this.r, this.g, this.b)); // display color
+		rect(this.tx, this.ty, 10); // draw tile
+		if(this.pDecay>0){ // decay the trail
 			this.pDecay--;
-			this.itCol();
+			this.itCol(); // iterate the color
 		}
 		else{
-			this.r = 0;
+			this.r = 0; // when no longer a trail, set to black
 			this.g = 0;
 			this.b = 0;
 		}
 	}
-	itCol(){
-		if(this.r > 240){
+	itCol(){ // iterates colors within a boundary
+		if(this.r > 240){ 
 			this.rdir = -1;
 		}
 		if(this.r < 40){
@@ -345,14 +345,14 @@ class Enemy{ //enemy will place down tails
 	}
 
 	display(){
-		board[this.cx][this.cy].pDecay = eTail;
+		board[this.cx][this.cy].pDecay = eTail; // set the current tile to a trail
 		board[this.cx][this.cy].r = this.r;
 		board[this.cx][this.cy].g = this.g;
 		board[this.cx][this.cy].b = this.b;
 
-		if(!endStage){
+		if(!endStage){ // if the stage is active, move
 			//print('bop ' + this.dir);
-			switch(this.dir){
+			switch(this.dir){ // move based on direction
 				case 0:
 					//print('up');
 					this.cy-=1;
@@ -368,7 +368,7 @@ class Enemy{ //enemy will place down tails
 					this.cx-=1;
 					break;
 			}
-			if(this.cy > 79){
+			if(this.cy > 79){ // loop at boundaries
 				this.cy = 1;
 			}
 			if(this.cx > 79){
@@ -380,16 +380,16 @@ class Enemy{ //enemy will place down tails
 			if(this.cx < 1){
 				this.cx = 79;
 			}
-			if(random(60)>this.turnDelay){
+			if(random(60)>this.turnDelay){ // odds of making a turn, increasing each frame a turn isn't made
 				this.turnDelay++;
 			}
 			else{
-				let tHold = Math.floor(random(3));
-				if (tHold >= this.dir){
+				let tHold = Math.floor(random(3)); //change to a random direction
+				if (tHold >= this.dir){ // if the opposite direction of the current one, choose the next one.
 					tHold++;
 				}
 				this.dir = tHold;
-				this.turnDelay = 0;
+				this.turnDelay = 0; //reset turn chance
 			}			
 		}
 		fill(color(this.r, this.g, this.b));
@@ -404,7 +404,7 @@ class Player{
 		this.cy = y;
 	}
 	display(){
-		if(!endStage){
+		if(!endStage){ // display and move if stage is active
 			switch(pdir){
 				case 0:
 					this.cy-=1;
@@ -419,7 +419,7 @@ class Player{
 					this.cx-=1;
 					break;
 			}
-			if(this.cy > 79){
+			if(this.cy > 79){ // loop at boundaries
 				this.cy = 1;
 			}
 			if(this.cx > 79){
@@ -435,7 +435,7 @@ class Player{
 				lose = true;
 			}
 		}
-		fill(color(50, 50, 230));
+		fill(color(50, 50, 230)); // change direction of arrow
 		switch(pdir){
 			case 0:
 				quad(this.cx*10+5, this.cy*10, this.cx*10+10, this.cy*10+10, this.cx*10+5, this.cy*10+7, this.cx*10, this.cy*10+10);
@@ -461,7 +461,7 @@ class Boss extends Enemy{
 		this.type = id; // indicates which boss this is
 	}
 	display(){
-		for (var x = -2; x < 3; x++){
+		for (var x = -2; x < 3; x++){ // mark a 5x5 trail
 			for (var y = -2; y < 3; y++){
 				board[this.cx+x][this.cy+y].pDecay = eTail;
 				board[this.cx+x][this.cy+y].r = this.r;
@@ -470,7 +470,7 @@ class Boss extends Enemy{
 			}
 		}
 
-		if(!endStage){
+		if(!endStage){ // move if stage is active
 			//print('bop ' + this.dir);
 			switch(this.dir){
 				case 0:
@@ -488,7 +488,7 @@ class Boss extends Enemy{
 					this.cx-=1;
 					break;
 			}
-			if(this.cy > 74){
+			if(this.cy > 74){ // loop at boundaries
 				this.cy = 6;
 			}
 			if(this.cx > 74){
@@ -500,16 +500,16 @@ class Boss extends Enemy{
 			if(this.cx < 6){
 				this.cx = 74;
 			}
-			if(random(60)>this.turnDelay){
+			if(random(60)>this.turnDelay){ // chance of making a turn, increasing each frame a turn isn't made
 				this.turnDelay++;
 			}
 			else{
-				let tHold = Math.floor(random(3));
-				if (tHold >= this.dir){
+				let tHold = Math.floor(random(3)); // turn a random direction
+				if (tHold >= this.dir){ // if it is the opposite of the current direction, choose the next one
 					tHold++;
 				}
 				this.dir = tHold;
-				this.turnDelay = 0;
+				this.turnDelay = 0; // reset turn chance
 			}			
 		}
 		fill(color(this.r, this.g, this.b));
