@@ -11,7 +11,10 @@ var pdir; // storing player direction
 
 var control; // player variable
 var endStage; // when the stage is over, becomes true, and initiates the next level
+var rules; //if rules have been shown
 var lose; // loss state
+var losetime; // track when to start again
+
 var enemyList; // array of enemies
 
 var board; // 2D array of tiles
@@ -33,7 +36,7 @@ function setup(){
 		}
 	}
 	level = 0; //determines the difficulty of the current stage. Bosses appear and enemy tail lengths increase on multiples of 5
-	// Every boss stage reached adds an additional boss
+	// Every boss stage reached adds an additional boss 
 	// every multiple of 5 and every 3rd stage after that (3, 8, 13, etc.), the number of enemies increases by 2.
 	enemyCt = 2;
 	eTail = 20;
@@ -50,14 +53,21 @@ function setup(){
 	bossList = [];
 
 	lose = false; // if true, show loss screen
+
+	rules = 0;
+
+	losetime = 0;
 }
 
 function draw(){
 	background(0);
 	if(lose){
-		fill(255);
-		textSize(40);
-
+		/*
+		fill(50, 50, 230);
+		textSize(100);
+		stroke(1)
+		text('You lost', 300, 300);
+		text('The game will restart in 3 seconds', 100, 400);*/ //doesn't work
 		for (let x = 0; x < 80; x++){
 			for (let y = 0; y < 80; y++){
 				//print('x, y: ' + x + ' ' + y);
@@ -68,6 +78,17 @@ function draw(){
 			}
 		}
 		print('board clean');
+		const pause = frameCount;
+		//not appreciated by most interpreters
+		/*
+		var time;
+		if(losetime == 1){
+			do{
+				time = frameCount;
+			} while (time-pause < 72);
+
+		}*/
+		//noStroke();
 		/*
 		var wait = frameCount+240;
 		print(wait);
@@ -76,16 +97,19 @@ function draw(){
 		}*/
 		endStage = true;
 		print(endStage);
-		sleep(5000);
+		//sleep(5000);
+		
 		lose = false;
 		level = 0;
+		
+		//losetime++;
 	}
-	if(endStage){
+	if(endStage && !lose){
 
 		level++;
 
-		control.x = 400;
-		control.y = 400;
+		control.cx = 40;
+		control.cy = 40;
 		pdir = 0;
 		control.display();
 
@@ -105,23 +129,78 @@ function draw(){
 			eTail+=3;
 			//var bx = random(80);
 			//var by = random(80);
-			bossList[level%5-1] = new Boss(random(70)+5, random(70)+5, random(1)); //create a new boss
-			adjust(bossList, 25, random(5)+5);
+			bossList[level/5-1] = new Boss(random(70)+5, random(70)+5, random(1)); //create a new boss
+			//adjust(bossList, 25, random(5)+5);
 			for(var i = 0; i < level/5; i++){
+				if (bossList[i].cx > 25 && bossList[i].cx < 80-25 && bossList[i].cy > 25 && bossList[i].cy < 80-25){ // check if the boss is too close to the player
+					if (bossList[i].cx < 40){
+						bossList[i].cx-=10;
+					}
+					else{
+						bossList[i].cx+=10;
+					}
+					if (bossList[i].cy < 40){
+						bossList[i].cy-=10;
+					}
+					else{
+						bossList[i].cy+=10;
+					}
+				}
 				bossList[i].display();
 			}
 		}
 		else{
-			adjust(enemyList, 30, random(15)+5);
+			//adjust(enemyList, 30, random(5)+20);
+
 			for(var i = 0; i < enemyCt; i++){
+				if (enemyList[i].cx > 30 && enemyList[i].cx < 80-30 && enemyList[i].cy > 30 && enemyList[i].cy < 80-30){ // check if the boss is too close to the player
+					if (enemyList[i].cx < 40){
+						enemyList[i].cx-=25;
+						enemyList[i].dir = 3;
+					}
+					else{
+						enemyList[i].cx+=25;
+						enemyList[i].dir = 1;
+					}
+					if (enemyList[i].cy < 40){
+						enemyList[i].cy-=25;
+						enemyList[i].dir = 0;
+					}
+					else{
+						enemyList[i].cy+=25;
+						enemyList[i].dir = 2;
+					}
+				}
 				enemyList[i].display();
 			}
 		}
+		control.display();
+		/*
+		const pause = frameCount;
+		var time;
+		if (rules < 2){
+			stroke(3);
+			fill (255);
+			textSize(80);
+			text("You are blue. Use the Arrowkeys to move and avoid the trails.", 300, 300, 200, 200);
+			noStroke();
+			print("RULES");
+		}
+		if(rules == 1){
+			do{
+				time = frameCount;
+			} while (time-pause < 72);
+
+		}
+		if(rules > 0){
+			endStage = false;
+			stageTime = frameCount + 240;
+		}
+		else{
+			rules++;
+		}*/
 		endStage = false;
-	}
-	for(var i = 0; i < enemyCt; i++){
-		//print('displaying');
-		enemyList[i].display();
+		stageTime = frameCount + 240;
 	}
 	for (let x = 0; x < 80; x++){
 		for (let y = 0; y < 80; y++){
@@ -129,8 +208,24 @@ function draw(){
 			board[x][y].display();
 		}
 	}
+	for(var i = 0; i < enemyCt; i++){
+		//print('displaying');
+		enemyList[i].display();
+	}
+	//if(level > 4){}
+	for(var i = 0; i < Math.floor(level/5); i++){
+		print(level);
+		bossList[i].display();
+	}
+
+	
+
 	control.display();
 	//print('moving');
+	if(frameCount>stageTime){
+		level++;
+		endStage = true;
+	}
 
 }
 
@@ -140,8 +235,6 @@ function sleep(milliseconds) { // sleep function, from https://www.sitepoint.com
   do {
     currentDate = Date.now();
     //print('waiting');
-	text('You lost', 300, 300);
-	text('The game will restart in 10 seconds', 100, 400);
   } while (currentDate - date < milliseconds);
 }
 
@@ -252,18 +345,23 @@ class Enemy{ //enemy will place down tails
 	}
 
 	display(){
+		board[this.cx][this.cy].pDecay = eTail;
+		board[this.cx][this.cy].r = this.r;
+		board[this.cx][this.cy].g = this.g;
+		board[this.cx][this.cy].b = this.b;
+
 		if(!endStage){
-			print('bop ' + this.dir);
+			//print('bop ' + this.dir);
 			switch(this.dir){
 				case 0:
-					print('up');
+					//print('up');
 					this.cy-=1;
 					break;
 				case 1:
 					this.cx+=1;
 					break;
 				case 2:
-					print('why');
+					//print('why');
 					this.cy+=1;
 					break;
 				case 3:
@@ -296,11 +394,6 @@ class Enemy{ //enemy will place down tails
 		}
 		fill(color(this.r, this.g, this.b));
 		circle(this.cx*10+5, this.cy*10+5, 10); // draw the body of an enemy, a circle with r of 10
-		board[this.cx][this.cy].pDecay = eTail;
-		board[this.cx][this.cy].r = this.r;
-		board[this.cx][this.cy].g = this.g;
-		board[this.cx][this.cy].b = this.b;
-
 	}
 
 }
@@ -366,5 +459,60 @@ class Boss extends Enemy{
 
 		this.dir = 3; // direction the boss is moving, always starting left (3)
 		this.type = id; // indicates which boss this is
+	}
+	display(){
+		for (var x = -2; x < 3; x++){
+			for (var y = -2; y < 3; y++){
+				board[this.cx+x][this.cy+y].pDecay = eTail;
+				board[this.cx+x][this.cy+y].r = this.r;
+				board[this.cx+x][this.cy+y].g = this.g;
+				board[this.cx+x][this.cy+y].b = this.b;				
+			}
+		}
+
+		if(!endStage){
+			//print('bop ' + this.dir);
+			switch(this.dir){
+				case 0:
+					//print('up');
+					this.cy-=1;
+					break;
+				case 1:
+					this.cx+=1;
+					break;
+				case 2:
+					//print('why');
+					this.cy+=1;
+					break;
+				case 3:
+					this.cx-=1;
+					break;
+			}
+			if(this.cy > 74){
+				this.cy = 6;
+			}
+			if(this.cx > 74){
+				this.cx = 6;
+			}
+			if(this.cy < 6){
+				this.cy = 74;
+			}
+			if(this.cx < 6){
+				this.cx = 74;
+			}
+			if(random(60)>this.turnDelay){
+				this.turnDelay++;
+			}
+			else{
+				let tHold = Math.floor(random(3));
+				if (tHold >= this.dir){
+					tHold++;
+				}
+				this.dir = tHold;
+				this.turnDelay = 0;
+			}			
+		}
+		fill(color(this.r, this.g, this.b));
+		circle(this.cx*10+5, this.cy*10+5, 50); // draw the body of a boss, a circle with width of 50
 	}
 }
